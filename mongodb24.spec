@@ -4,7 +4,7 @@
 Summary: Package that installs %scl
 Name: %scl_name
 Version: 1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv2+
 Group: Applications/File
 Requires: scl-utils
@@ -29,6 +29,8 @@ Package shipping essential scripts to work with %scl Software Collection.
 
 %package build
 Summary: Package shipping basic build configuration
+# Require xmvn config/java config at build time
+Requires:   %{name}-runtime = %{version}
 Group: Applications/File
 
 %description build
@@ -36,6 +38,99 @@ Package shipping essential configuration macros to build %scl Software Collectio
 
 %prep
 %setup -c -T
+#===========#
+# java.conf #
+#===========#
+cat <<EOF >java.conf
+# Java configuration file for %{scl} software collection.
+JAVA_LIBDIR=%{_javadir}
+JNI_LIBDIR=%{_jnidir}
+JVM_ROOT=%{_jvmdir}
+EOF
+
+#=============#
+# XMvn config #
+#=============#
+cat <<EOF >configuration.xml
+<!-- XMvn configuration file for %{scl} software collection -->
+<configuration>
+  <resolverSettings>
+    <prefixes>
+      <prefix>/opt/rh/%{scl}/root</prefix>
+    </prefixes>
+  </resolverSettings>
+  <installerSettings>
+    <metadataDir>opt/rh/%{scl}/root/usr/share/maven-fragments</metadataDir>
+  </installerSettings>
+  <repositories>
+    <repository>
+      <id>%{scl}-resolve</id>
+      <type>compound</type>
+      <properties>
+        <prefix>opt/rh/%{scl}/root</prefix>
+        <namespace>%{scl}</namespace>
+      </properties>
+      <configuration>
+        <repositories>
+          <repository>base-resolve</repository>
+        </repositories>
+      </configuration>
+    </repository>
+    <repository>
+      <id>resolve-system</id>
+      <type>compound</type>
+      <properties>
+        <prefix>/</prefix>
+      </properties>
+      <configuration>
+        <repositories>
+          <repository>%{scl}-resolve</repository>
+          <repository>base-resolve</repository>
+        </repositories>
+      </configuration>
+    </repository>
+    <repository>
+      <id>install</id>
+      <type>compound</type>
+      <properties>
+        <prefix>opt/rh/%{scl}/root</prefix>
+        <namespace>%{scl}</namespace>
+      </properties>
+      <configuration>
+        <repositories>
+          <repository>base-install</repository>
+        </repositories>
+      </configuration>
+    </repository>
+    <repository>
+      <id>install-raw-pom</id>
+      <type>compound</type>
+      <properties>
+        <prefix>opt/rh/%{scl}/root</prefix>
+        <namespace>%{scl}</namespace>
+      </properties>
+      <configuration>
+        <repositories>
+          <repository>base-raw-pom</repository>
+        </repositories>
+      </configuration>
+    </repository>
+    <repository>
+      <id>install-effective-pom</id>
+      <type>compound</type>
+      <properties>
+        <prefix>opt/rh/%{scl}/root</prefix>
+        <namespace>%{scl}</namespace>
+      </properties>
+      <configuration>
+        <repositories>
+          <repository>base-effective-pom</repository>
+        </repositories>
+      </configuration>
+    </repository>
+  </repositories>
+</configuration>
+EOF
 
 %install
 mkdir -p %{buildroot}%{_scl_scripts}/root
@@ -52,6 +147,15 @@ export LD_LIBRARY_PATH=%{_libdir}\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}
 export MANPATH=%{_mandir}:\${MANPATH}
 export PKG_CONFIG_PATH=%{_libdir}/pkgconfig\${PKG_CONFIG_PATH:+:\${PKG_CONFIG_PATH}}
 export CPATH=%{_includedir}\${CPATH:+:\${CPATH}}
+# Needed by Java Packages Tools to locate java.conf
+export JAVACONFDIRS="%{_sysconfdir}/java:\${JAVACONFDIRS:-/etc/java}"
+
+# Required by XMvn to locate its configuration file(s)
+export XDG_CONFIG_DIRS="%{_sysconfdir}/xdg:\${XDG_CONFIG_DIRS:-/etc/xdg}"
+
+# Not really needed by anything for now, but kept for consistency with
+# XDG_CONFIG_DIRS.
+export XDG_DATA_DIRS="%{_datadir}:\${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
 EOF
 
 cat >> %{buildroot}%{_scl_scripts}/service-environment << EOF
@@ -63,6 +167,12 @@ cat >> %{buildroot}%{_scl_scripts}/service-environment << EOF
 # /opt/rh/sclname/service-environment.
 MONGODB24_MONGOD_SCLS_ENABLED="%{scl}"
 EOF
+
+install -d -m 755 %{buildroot}%{_sysconfdir}/java
+install -p -m 644 java.conf %{buildroot}%{_sysconfdir}/java/
+
+install -d -m 755 %{buildroot}%{_sysconfdir}/xdg/xmvn
+install -p -m 644 configuration.xml %{buildroot}%{_sysconfdir}/xdg/xmvn/
 
 %scl_install
 
@@ -83,11 +193,18 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %files runtime
 %scl_files
 %config(noreplace) %{_scl_scripts}/service-environment
+%config(noreplace) %{_sysconfdir}/java/java.conf
+%config(noreplace) %{_sysconfdir}/xdg/xmvn/configuration.xml
 
 %files build
 %{_root_sysconfdir}/rpm/macros.%{scl}-config
 
 %changelog
+* Thu Nov 07 2013 Severin Gehwolf <sgehwolf@redhat.com> 1-2
+- Add java/xmvn config to runtime subpackage.
+- Require runtime in build package so as to have java/xmvn
+  configs available.
+
 * Mon Aug 12 2013 Honza Horak <hhorak@redhat.com> 1-1
 - initial packaging
 
