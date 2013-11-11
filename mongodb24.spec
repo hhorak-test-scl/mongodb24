@@ -38,19 +38,14 @@ Package shipping essential configuration macros to build %scl Software Collectio
 
 %prep
 %setup -c -T
-#===========#
-# java.conf #
-#===========#
+# java.conf
 cat <<EOF >java.conf
 # Java configuration file for %{scl} software collection.
 JAVA_LIBDIR=%{_javadir}
 JNI_LIBDIR=%{_jnidir}
 JVM_ROOT=%{_jvmdir}
 EOF
-
-#=============#
-# XMvn config #
-#=============#
+# XMvn config
 cat <<EOF >configuration.xml
 <!-- XMvn configuration file for %{scl} software collection -->
 <configuration>
@@ -134,7 +129,6 @@ EOF
 
 %install
 mkdir -p %{buildroot}%{_scl_scripts}/root
-
 # During the build of this package, we don't know which architecture it is 
 # going to be used on, so if we build on 64-bit system and use it on 32-bit, 
 # the %{_libdir} would stay expanded to '.../lib64'. This way we determine 
@@ -149,15 +143,12 @@ export PKG_CONFIG_PATH=%{_libdir}/pkgconfig\${PKG_CONFIG_PATH:+:\${PKG_CONFIG_PA
 export CPATH=%{_includedir}\${CPATH:+:\${CPATH}}
 # Needed by Java Packages Tools to locate java.conf
 export JAVACONFDIRS="%{_sysconfdir}/java:\${JAVACONFDIRS:-/etc/java}"
-
 # Required by XMvn to locate its configuration file(s)
 export XDG_CONFIG_DIRS="%{_sysconfdir}/xdg:\${XDG_CONFIG_DIRS:-/etc/xdg}"
-
 # Not really needed by anything for now, but kept for consistency with
 # XDG_CONFIG_DIRS.
 export XDG_DATA_DIRS="%{_datadir}:\${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
 EOF
-
 cat >> %{buildroot}%{_scl_scripts}/service-environment << EOF
 # Services are started in a fresh environment without any influence of user's
 # environment (like environment variable values). As a consequence,
