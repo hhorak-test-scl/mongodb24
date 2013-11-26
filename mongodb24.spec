@@ -1,18 +1,18 @@
 %{!?scl:%global scl mongodb24}
 %scl_package %scl
-%global v8_name v8314
+%global __mongodb_v8_name v8314
 
 Summary: Package that installs %scl
 Name: %scl_name
 Version: 1
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0:  macros.mongodb24
 Source1:  mongodb24-javapackages-provides-wrapper
 Source2:  mongodb24-javapackages-requires-wrapper
 Requires: scl-utils
-Requires: %{v8_name}
+Requires: %{__mongodb_v8_name}
 Requires: %{scl_prefix}mongodb-server
 BuildRequires: scl-utils-build
 
@@ -153,7 +153,7 @@ export XDG_CONFIG_DIRS="%{_sysconfdir}/xdg:\${XDG_CONFIG_DIRS:-/etc/xdg}"
 # Not really needed by anything for now, but kept for consistency with
 # XDG_CONFIG_DIRS.
 export XDG_DATA_DIRS="%{_datadir}:\${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
-. scl_source enable %{v8_name}
+. scl_source enable %{__mongodb_v8_name}
 EOF
 cat >> %{buildroot}%{_scl_scripts}/service-environment << EOF
 # Services are started in a fresh environment without any influence of user's
@@ -178,10 +178,10 @@ install -Dpm0755 %{SOURCE2} %{buildroot}%{_rpmconfigdir}/%{name}-javapackages-re
 
 %scl_install
 
-# make some macros system-wide-accessible with __ prefix
+# make some macros system-wide-accessible (use __mongodb_ prefix!)
 #   (it's used in other %%{scl}-... pkgs)
 cat >> %{buildroot}%{_root_sysconfdir}/rpm/macros.%{scl}-config << EOF
-%%global __v8_name %{v8_name}
+%%__mongodb_v8_name %{__mongodb_v8_name}
 EOF
 
 %post runtime
@@ -210,6 +210,9 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_rpmconfigdir}/%{name}*
 
 %changelog
+* Tue Nov 26 2013 Jan Pacner <jpacner@redhat.com> - 1-5
+- rename system-wide v8 macro
+
 * Thu Nov 21 2013 Jan Pacner <jpacner@redhat.com> - 1-4
 - fix {scl}_SCLS_ENABLED variable
 - add dependency on external v8 SCL
