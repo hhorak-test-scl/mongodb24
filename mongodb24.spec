@@ -1,13 +1,18 @@
 %{!?scl:%global scl mongodb24}
 %scl_package %scl
+%global v8_name v8314
 
 Summary: Package that installs %scl
 Name: %scl_name
 Version: 1
-Release: 2%{?dist}
+Release: 4%{?dist}
 License: GPLv2+
 Group: Applications/File
+Source0:  macros.mongodb24
+Source1:  mongodb24-javapackages-provides-wrapper
+Source2:  mongodb24-javapackages-requires-wrapper
 Requires: scl-utils
+Requires: %{v8_name}
 Requires: %{scl_prefix}mongodb-server
 BuildRequires: scl-utils-build
 
@@ -129,10 +134,10 @@ EOF
 
 %install
 mkdir -p %{buildroot}%{_scl_scripts}/root
-# During the build of this package, we don't know which architecture it is 
-# going to be used on, so if we build on 64-bit system and use it on 32-bit, 
-# the %{_libdir} would stay expanded to '.../lib64'. This way we determine 
-# architecture everytime the 'scl enable ...' is run and set the 
+# During the build of this package, we don't know which architecture it is
+# going to be used on, so if we build on 64-bit system and use it on 32-bit,
+# the %{_libdir} would stay expanded to '.../lib64'. This way we determine
+# architecture everytime the 'scl enable ...' is run and set the
 # LD_LIBRARY_PATH accordingly
 cat >> %{buildroot}%{_scl_scripts}/enable << EOF
 export PATH=%{_bindir}${PATH:+:\${PATH}}
@@ -148,15 +153,16 @@ export XDG_CONFIG_DIRS="%{_sysconfdir}/xdg:\${XDG_CONFIG_DIRS:-/etc/xdg}"
 # Not really needed by anything for now, but kept for consistency with
 # XDG_CONFIG_DIRS.
 export XDG_DATA_DIRS="%{_datadir}:\${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+. scl_source enable %{v8_name}
 EOF
 cat >> %{buildroot}%{_scl_scripts}/service-environment << EOF
 # Services are started in a fresh environment without any influence of user's
 # environment (like environment variable values). As a consequence,
 # information of all enabled collections will be lost during service start up.
 # If user needs to run a service under any software collection enabled, this
-# collection has to be written into MONGODB24_MONGOD_SCLS_ENABLED variable in
+# collection has to be written into %{scl}_SCLS_ENABLED variable in
 # /opt/rh/sclname/service-environment.
-MONGODB24_MONGOD_SCLS_ENABLED="%{scl}"
+$(printf '%%s' '%{scl}' | tr '[:lower:][:space:]' '[:upper:]_')_SCLS_ENABLED='%{scl}'
 EOF
 
 install -d -m 755 %{buildroot}%{_sysconfdir}/java
@@ -165,7 +171,18 @@ install -p -m 644 java.conf %{buildroot}%{_sysconfdir}/java/
 install -d -m 755 %{buildroot}%{_sysconfdir}/xdg/xmvn
 install -p -m 644 configuration.xml %{buildroot}%{_sysconfdir}/xdg/xmvn/
 
+# install magic for java mvn provides/requires generators
+install -Dpm0644 %{SOURCE0} %{buildroot}%{_root_sysconfdir}/rpm/macros.%{name}
+install -Dpm0755 %{SOURCE1} %{buildroot}%{_rpmconfigdir}/%{name}-javapackages-provides-wrapper
+install -Dpm0755 %{SOURCE2} %{buildroot}%{_rpmconfigdir}/%{name}-javapackages-requires-wrapper
+
 %scl_install
+
+# make some macros system-wide-accessible with __ prefix
+#   (it's used in other %%{scl}-... pkgs)
+cat >> %{buildroot}%{_root_sysconfdir}/rpm/macros.%{scl}-config << EOF
+%%global __v8_name %{v8_name}
+EOF
 
 %post runtime
 # Simple copy of context from system root to DSC root.
@@ -189,8 +206,17 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 
 %files build
 %{_root_sysconfdir}/rpm/macros.%{scl}-config
+%{_root_sysconfdir}/rpm/macros.%{name}
+%{_rpmconfigdir}/%{name}*
 
 %changelog
+* Thu Nov 21 2013 Jan Pacner <jpacner@redhat.com> - 1-4
+- fix {scl}_SCLS_ENABLED variable
+- add dependency on external v8 SCL
+
+* Wed Nov 13 2013 Severin Gehwolf <sgehwolf@redhat.com> 1-3
+- Add java mvn provides and requires generator wrapper.
+
 * Thu Nov 07 2013 Severin Gehwolf <sgehwolf@redhat.com> 1-2
 - Add java/xmvn config to runtime subpackage.
 - Require runtime in build package so as to have java/xmvn
