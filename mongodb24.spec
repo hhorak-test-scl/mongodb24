@@ -5,7 +5,7 @@
 Summary: Package that installs %scl
 Name: %scl_name
 Version: 1
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0:  macros.mongodb24
@@ -153,7 +153,8 @@ export XDG_CONFIG_DIRS="%{_sysconfdir}/xdg:\${XDG_CONFIG_DIRS:-/etc/xdg}"
 # Not really needed by anything for now, but kept for consistency with
 # XDG_CONFIG_DIRS.
 export XDG_DATA_DIRS="%{_datadir}:\${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
-. scl_source enable %{__mongodb_v8_name}
+# FIXME: temp workaround to unbreak the thermostat1-thermostat build
+#. scl_source enable %{__mongodb_v8_name}
 EOF
 cat >> %{buildroot}%{_scl_scripts}/service-environment << EOF
 # Services are started in a fresh environment without any influence of user's
@@ -210,6 +211,9 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_rpmconfigdir}/%{name}*
 
 %changelog
+* Tue Nov 26 2013 Severin Gehwolf <sgehwolf@redhat.com> - 1-6
+- Temporarily unbreak the thermostat1-thermostat build.
+
 * Tue Nov 26 2013 Jan Pacner <jpacner@redhat.com> - 1-5
 - rename system-wide v8 macro
 
