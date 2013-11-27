@@ -5,7 +5,7 @@
 Summary: Package that installs %scl
 Name: %scl_name
 Version: 1
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0:  macros.mongodb24
@@ -27,6 +27,7 @@ Install this package if you want to use MongoDB 2.4 server on your system
 Summary: Package that handles %scl Software Collection.
 Group: Applications/File
 Requires: scl-utils
+Requires: %{__mongodb_v8_name}-runtime
 Requires(post): policycoreutils-python, libselinux-utils
 
 %description runtime
@@ -210,6 +211,9 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_rpmconfigdir}/%{name}*
 
 %changelog
+* Wed Nov 27 2013 Honza Horak <hhorak@redhat.com> - 1-8
+- Added dependency on v8314-runtime
+
 * Tue Nov 26 2013 Severin Gehwolf <sgehwolf@redhat.com> - 1-7
 - Revert temporary fix for thermostat1-thermostat build.
 
