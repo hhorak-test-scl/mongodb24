@@ -5,4 +5,7 @@ do
   if [[ "$filepath" == *maven-fragments/* ]]; then
      echo "$filepath" | /usr/lib/rpm/maven.req
   fi
+  if [[ "$filepath" =~ .*/share/javadoc/.* ]]; then
+     echo "$filepath" | /usr/lib/rpm/javadoc.req
+  fi
 done < "${1:-/proc/${$}/fd/0}"
