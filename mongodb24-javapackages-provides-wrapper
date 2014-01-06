@@ -5,9 +5,6 @@ do
   if [[ "$filepath" == *maven-fragments/* ]]; then
      echo "$filepath" | /usr/lib/rpm/maven.prov
   fi
-  if [[ "$filepath" =~ (.*\.jar|.*/MANIFEST.MF) ]]; then
-     echo "$filepath" | /usr/lib/rpm/osgi.prov
-  fi
   if [[ "$filepath" =~ .*/share/javadoc/.* ]]; then
      echo "$filepath" | /usr/lib/rpm/javadoc.req
   fi

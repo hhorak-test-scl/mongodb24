@@ -5,7 +5,7 @@
 Summary: Package that installs %scl
 Name: %scl_name
 Version: 1
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0:  macros.mongodb24
@@ -211,6 +211,10 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_rpmconfigdir}/%{name}*
 
 %changelog
+* Mon Dec 23 2013 Severin Gehwolf <sgehwolf@redhat.com> - 1-9
+- Fix osgi() Requires/Provides generation.
+- Resolves: RHBZ#1046029
+
 * Wed Nov 27 2013 Honza Horak <hhorak@redhat.com> - 1-8
 - Added dependency on v8314-runtime
 

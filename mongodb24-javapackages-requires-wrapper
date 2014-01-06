@@ -5,7 +5,4 @@ do
   if [[ "$filepath" == *maven-fragments/* ]]; then
      echo "$filepath" | /usr/lib/rpm/maven.req
   fi
-  if [[ "$filepath" =~ (.*\.jar|.*/MANIFEST.MF) ]]; then
-     echo "$filepath" | /usr/lib/rpm/osgi.req
-  fi
 done < "${1:-/proc/${$}/fd/0}"
