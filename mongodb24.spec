@@ -5,13 +5,17 @@
 Summary: Package that installs %scl
 Name: %scl_name
 Version: 1
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0:  macros.mongodb24
 Source1:  mongodb24-javapackages-provides-wrapper
 Source2:  mongodb24-javapackages-requires-wrapper
+%if 0%{?rhel} < 7
+Requires: scl-utils >= 20120927-8.el6_5
+%else
 Requires: scl-utils
+%endif
 Requires: %{__mongodb_v8_name}
 Requires: %{scl_prefix}mongodb-server
 BuildRequires: scl-utils-build
@@ -211,6 +215,9 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_rpmconfigdir}/%{name}*
 
 %changelog
+* Fri Jan 17 2014 Jan Pacner <jpacner@redhat.com> - 1-10
+- Resolves: RHBZ#1054644 (mongodb24-runtime needs to depend on newer scl-utils)
+
 * Mon Dec 23 2013 Severin Gehwolf <sgehwolf@redhat.com> - 1-9
 - Fix osgi() Requires/Provides generation.
 - Resolves: RHBZ#1046029
