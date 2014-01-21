@@ -1,11 +1,15 @@
-%{!?scl:%global scl mongodb24}
+%{!?scl_name_base:%global scl_name_base mongodb}
+%{!?scl_name_version:%global scl_name_version 24}
+# needed, because we can't use Requires: %{?scl_v8_%{scl_name_base}}
+%global scl_v8 v8314
+
+%{!?scl:%global scl %{scl_name_base}%{scl_name_version}}
 %scl_package %scl
-%global __mongodb_v8_name v8314
 
 Summary: Package that installs %scl
 Name: %scl_name
 Version: 1
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0:  macros.mongodb24
@@ -16,7 +20,7 @@ Requires: scl-utils >= 20120927-8.el6_5
 %else
 Requires: scl-utils
 %endif
-Requires: %{__mongodb_v8_name}
+Requires: %{scl_v8}
 Requires: %{scl_prefix}mongodb-server
 BuildRequires: scl-utils-build
 
@@ -31,7 +35,7 @@ Install this package if you want to use MongoDB 2.4 server on your system
 Summary: Package that handles %scl Software Collection.
 Group: Applications/File
 Requires: scl-utils
-Requires: %{__mongodb_v8_name}-runtime
+Requires: %{scl_v8}
 Requires(post): policycoreutils-python, libselinux-utils
 
 %description runtime
@@ -44,7 +48,16 @@ Requires:   %{name}-runtime = %{version}
 Group: Applications/File
 
 %description build
-Package shipping essential configuration macros to build %scl Software Collection.
+Package shipping essential configuration macros to build
+%scl Software Collection.
+
+%package scldevel
+Summary: Package shipping development files for %scl.
+Group: Applications/File
+
+%description scldevel
+Development files for %scl (useful e.g. for hierarchical collection
+building with transitive dependencies).
 
 %prep
 %setup -c -T
@@ -158,7 +171,7 @@ export XDG_CONFIG_DIRS="%{_sysconfdir}/xdg:\${XDG_CONFIG_DIRS:-/etc/xdg}"
 # Not really needed by anything for now, but kept for consistency with
 # XDG_CONFIG_DIRS.
 export XDG_DATA_DIRS="%{_datadir}:\${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
-. scl_source enable %{__mongodb_v8_name}
+. scl_source enable %{scl_v8_%{scl_name_base}}
 EOF
 cat >> %{buildroot}%{_scl_scripts}/service-environment << EOF
 # Services are started in a fresh environment without any influence of user's
@@ -183,10 +196,11 @@ install -Dpm0755 %{SOURCE2} %{buildroot}%{_rpmconfigdir}/%{name}-javapackages-re
 
 %scl_install
 
-# make some macros system-wide-accessible (use __mongodb_ prefix!)
-#   (it's used in other %%{scl}-... pkgs)
-cat >> %{buildroot}%{_root_sysconfdir}/rpm/macros.%{scl}-config << EOF
-%%__mongodb_v8_name %{__mongodb_v8_name}
+# scldevel garbage
+cat >> %{buildroot}%{_root_sysconfdir}/rpm/macros.%{scl_name_base}-scldevel << EOF
+%%scl_%{scl_name_base} %{scl}
+%%scl_prefix_%{scl_name_base} %{scl_prefix}
+%%scl_v8_%{scl_name_base} %{scl_v8}
 EOF
 
 %post runtime
@@ -214,7 +228,14 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_root_sysconfdir}/rpm/macros.%{name}
 %{_rpmconfigdir}/%{name}*
 
+%files scldevel
+%{_root_sysconfdir}/rpm/macros.%{scl_name_base}-scldevel
+
 %changelog
+* Mon Jan 20 2014 Jan Pacner <jpacner@redhat.com>
+- Resolves: #1055555 (add -scldevel subpackage for shipped build-requires
+  garbage)
+
 * Fri Jan 17 2014 Jan Pacner <jpacner@redhat.com> - 1-10
 - Resolves: RHBZ#1054644 (mongodb24-runtime needs to depend on newer scl-utils)
 
