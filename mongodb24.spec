@@ -171,7 +171,7 @@ export XDG_CONFIG_DIRS="%{_sysconfdir}/xdg:\${XDG_CONFIG_DIRS:-/etc/xdg}"
 # Not really needed by anything for now, but kept for consistency with
 # XDG_CONFIG_DIRS.
 export XDG_DATA_DIRS="%{_datadir}:\${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
-. scl_source enable %{scl_v8_%{scl_name_base}}
+. scl_source enable %{scl_v8}
 EOF
 cat >> %{buildroot}%{_scl_scripts}/service-environment << EOF
 # Services are started in a fresh environment without any influence of user's
