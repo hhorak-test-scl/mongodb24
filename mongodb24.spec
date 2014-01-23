@@ -9,7 +9,7 @@
 Summary: Package that installs %scl
 Name: %scl_name
 Version: 1
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0:  macros.mongodb24
@@ -232,6 +232,10 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_root_sysconfdir}/rpm/macros.%{scl_name_base}-scldevel
 
 %changelog
+* Thu Jan 23 2014 Jan Pacner <jpacner@redhat.com> - 1-12
+- Related: #1055555 (add -scldevel subpackage for shipped build-requires files);
+  fix typo
+
 * Mon Jan 20 2014 Jan Pacner <jpacner@redhat.com>
 - Resolves: #1055555 (add -scldevel subpackage for shipped build-requires
   garbage)
