@@ -2,6 +2,7 @@
 %{!?scl_name_version:%global scl_name_version 24}
 # needed, because we can't use Requires: %{?scl_v8_%{scl_name_base}}
 %global scl_v8 v8314
+%{?scl:%global scl_v8_prefix %{scl_v8}-}
 
 %{!?scl:%global scl %{scl_name_base}%{scl_name_version}}
 %scl_package %scl
@@ -9,7 +10,7 @@
 Summary: Package that installs %scl
 Name: %scl_name
 Version: 1
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0:  macros.mongodb24
@@ -35,7 +36,7 @@ Install this package if you want to use MongoDB 2.4 server on your system
 Summary: Package that handles %scl Software Collection.
 Group: Applications/File
 Requires: scl-utils
-Requires: %{scl_v8}-runtime
+Requires: %{?scl_v8_prefix}runtime
 Requires(post): policycoreutils-python, libselinux-utils
 
 %description runtime
@@ -233,6 +234,10 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_root_sysconfdir}/rpm/macros.%{scl_name_base}-scldevel
 
 %changelog
+* Fri Jan 31 2014 Jan Pacner <jpacner@redhat.com> - 1-15
+- Related: #1055555 (add -scldevel subpackage for shipped build-requires files;
+  fix prefix in Requires:)
+
 * Fri Jan 31 2014 Jan Pacner <jpacner@redhat.com> - 1-14
 - Related: #1055555 (add -scldevel subpackage for shipped build-requires files;
   -runtime requires only v8xxx-runtime)
