@@ -9,7 +9,7 @@
 Summary: Package that installs %scl
 Name: %scl_name
 Version: 1
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0:  macros.mongodb24
@@ -43,8 +43,9 @@ Package shipping essential scripts to work with %scl Software Collection.
 
 %package build
 Summary: Package shipping basic build configuration
-# Require xmvn config/java config at build time
-Requires:   %{name}-runtime = %{version}
+# xmvn_config/java_config
+Requires: %{name}-runtime = %{version}
+Requires: scl-utils-build
 Group: Applications/File
 
 %description build
@@ -158,12 +159,12 @@ mkdir -p %{buildroot}%{_scl_scripts}/root
 # architecture everytime the 'scl enable ...' is run and set the
 # LD_LIBRARY_PATH accordingly
 cat >> %{buildroot}%{_scl_scripts}/enable << EOF
-export PATH=%{_bindir}${PATH:+:\${PATH}}
-export LIBRARY_PATH=%{_libdir}\${LIBRARY_PATH:+:\${LIBRARY_PATH}}
-export LD_LIBRARY_PATH=%{_libdir}\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}
+export PATH=%{_bindir}:\${PATH:+:\${PATH}}
+export LIBRARY_PATH=%{_libdir}:\${LIBRARY_PATH:+:\${LIBRARY_PATH}}
+export LD_LIBRARY_PATH=%{_libdir}:\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}
 export MANPATH=%{_mandir}:\${MANPATH}
-export PKG_CONFIG_PATH=%{_libdir}/pkgconfig\${PKG_CONFIG_PATH:+:\${PKG_CONFIG_PATH}}
-export CPATH=%{_includedir}\${CPATH:+:\${CPATH}}
+export PKG_CONFIG_PATH=%{_libdir}/pkgconfig:\${PKG_CONFIG_PATH:+:\${PKG_CONFIG_PATH}}
+export CPATH=%{_includedir}:\${CPATH:+:\${CPATH}}
 # Needed by Java Packages Tools to locate java.conf
 export JAVACONFDIRS="%{_sysconfdir}/java:\${JAVACONFDIRS:-/etc/java}"
 # Required by XMvn to locate its configuration file(s)
@@ -232,9 +233,8 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_root_sysconfdir}/rpm/macros.%{scl_name_base}-scldevel
 
 %changelog
-* Thu Jan 23 2014 Jan Pacner <jpacner@redhat.com> - 1-12
-- Related: #1055555 (add -scldevel subpackage for shipped build-requires files);
-  fix typo
+* Fri Jan 31 2014 Jan Pacner <jpacner@redhat.com> - 1-13
+- Resolves: #1057491 (-build needs to depend on scl-utils-build)
 
 * Mon Jan 20 2014 Jan Pacner <jpacner@redhat.com>
 - Resolves: #1055555 (add -scldevel subpackage for shipped build-requires
