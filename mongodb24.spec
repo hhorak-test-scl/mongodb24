@@ -79,7 +79,7 @@ JVM_ROOT=%{_jvmdir}
 EOF
 # XMvn config
 cat <<EOF >configuration.xml
-<!-- XMvn configuration file for %{scl} software collection -->
+<!-- XMvn configuration file for the %{scl} software collection -->
 <configuration>
   <resolverSettings>
     <prefixes>
