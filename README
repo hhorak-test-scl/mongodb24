@@ -1,0 +1,36 @@
+Package %{scl_name} provides MongoDB server delivered using Software
+Collections concept. For more information about Software Collections
+concept, read scl(1). By installing %{scl_name} collection, you will get
+the minimum working set of packages to have working MongoDB server.
+
+Usage: scl enable %{scl} 'mongod'
+
+Software Collections concept allows to build and execute applications
+which are not located in the filesystem root hierarchy but are present
+in an alternative location, which is %{scl_prefix}
+in case of %{scl_name} collection.
+
+This package provides the mongod server and sharding server software,
+default configuration files, and init scripts.
+
+When working with %{scl_name} collection, use scl utility (see scl(1)
+for usage) to enable scl environment properly.
+
+Configuration for the %{scl_name} software collection is located
+under %{_sysconfdir}.
+
+Examples:
+scl enable %{scl_name} 'command --arg'
+  Run a specific command with argument --arg within %{scl_name} software
+  collections environment.
+
+scl enable %{scl_name} 'mongod'
+  Run mongod from %{scl_name} software collection.
+
+scl enable %{scl_name} bash
+  Run interactive shell wherein the %{scl_name} software collection is
+  enabled.
+
+scl enable %{scl_name} 'man mongod'
+  Show man pages for mongod command, which is part of the %{scl_name}
+  software collection.

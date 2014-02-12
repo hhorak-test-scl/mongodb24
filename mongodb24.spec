@@ -1,21 +1,28 @@
 %{!?scl_name_base:%global scl_name_base mongodb}
 %{!?scl_name_version:%global scl_name_version 24}
+# particularly useful for mock
+%{!?scl:%global scl %{scl_name_base}%{scl_name_version}}
+%scl_package %scl
 # needed, because we can't use Requires: %{?scl_v8_%{scl_name_base}}
 %global scl_v8 v8314
 %{?scl:%global scl_v8_prefix %{scl_v8}-}
-
-%{!?scl:%global scl %{scl_name_base}%{scl_name_version}}
-%scl_package %scl
+# do not produce empty debuginfo package (https://bugzilla.redhat.com/show_bug.cgi?id=1061439#c2)
+%global debug_package %{nil}
 
 Summary: Package that installs %scl
 Name: %scl_name
-Version: 1
-Release: 15%{?dist}
+# should match the RHSCL version
+Version: 1.1
+Release: 1%{?dist}
 License: GPLv2+
 Group: Applications/File
-Source0:  macros.mongodb24
-Source1:  mongodb24-javapackages-provides-wrapper
-Source2:  mongodb24-javapackages-requires-wrapper
+Source0: macros.mongodb24
+Source1: mongodb24-javapackages-provides-wrapper
+Source2: mongodb24-javapackages-requires-wrapper
+# template of man page with RPM macros to be expanded
+Source3: README
+# mongodb license
+Source4: LICENSE
 %if 0%{?rhel} < 7
 Requires: scl-utils >= 20120927-8.el6_5
 %else
@@ -23,7 +30,7 @@ Requires: scl-utils
 %endif
 Requires: %{scl_v8}
 Requires: %{scl_prefix}mongodb-server
-BuildRequires: scl-utils-build
+BuildRequires: scl-utils-build, help2man
 
 %description
 This is the main package for %scl Software Collection, which installs
@@ -152,6 +159,26 @@ cat <<EOF >configuration.xml
 </configuration>
 EOF
 
+cat > README <<\EOF
+%{expand:%(cat %{SOURCE3})}
+EOF
+# copy the license file so %%files section sees it
+cp %{SOURCE4} .
+
+%build
+# temporary helper script used by help2man
+cat > h2m_helper <<\EOF
+#!/bin/sh
+if [ "$1" = "--version" ]; then
+  printf '%%s' "%{scl_name} %{version} Software Collection"
+else
+  cat README
+fi
+EOF
+chmod a+x h2m_helper
+# generate the man page
+help2man -N --section 7 ./h2m_helper -o %{scl_name}.7
+
 %install
 mkdir -p %{buildroot}%{_scl_scripts}/root
 # During the build of this package, we don't know which architecture it is
@@ -196,6 +223,10 @@ install -Dpm0644 %{SOURCE0} %{buildroot}%{_root_sysconfdir}/rpm/macros.%{name}
 install -Dpm0755 %{SOURCE1} %{buildroot}%{_rpmconfigdir}/%{name}-javapackages-provides-wrapper
 install -Dpm0755 %{SOURCE2} %{buildroot}%{_rpmconfigdir}/%{name}-javapackages-requires-wrapper
 
+# install generated man page
+mkdir -p %{buildroot}%{_mandir}/man7/
+install -m 644 %{scl_name}.7 %{buildroot}%{_mandir}/man7/%{scl_name}.7
+
 %scl_install
 
 # scldevel garbage
@@ -220,10 +251,12 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %files
 
 %files runtime
+%doc README LICENSE
 %scl_files
 %config(noreplace) %{_scl_scripts}/service-environment
 %config(noreplace) %{_sysconfdir}/java/java.conf
 %config(noreplace) %{_sysconfdir}/xdg/xmvn/configuration.xml
+%{_mandir}/man7/%{scl_name}.*
 
 %files build
 %{_root_sysconfdir}/rpm/macros.%{scl}-config
@@ -234,6 +267,10 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_root_sysconfdir}/rpm/macros.%{scl_name_base}-scldevel
 
 %changelog
+* Tue Feb 11 2014 Jan Pacner <jpacner@redhat.com> - 1.1-1
+- Resolves: #1061449 (meta pkg should include LICENSE, README and man page - all
+  related to meta pkg itself)
+
 * Fri Jan 31 2014 Jan Pacner <jpacner@redhat.com> - 1-15
 - Related: #1055555 (add -scldevel subpackage for shipped build-requires files;
   fix prefix in Requires:)
