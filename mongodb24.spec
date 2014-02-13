@@ -13,7 +13,7 @@ Summary: Package that installs %scl
 Name: %scl_name
 # should match the RHSCL version
 Version: 1.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0: macros.mongodb24
@@ -187,12 +187,12 @@ mkdir -p %{buildroot}%{_scl_scripts}/root
 # architecture everytime the 'scl enable ...' is run and set the
 # LD_LIBRARY_PATH accordingly
 cat >> %{buildroot}%{_scl_scripts}/enable << EOF
-export PATH=%{_bindir}:\${PATH:+:\${PATH}}
-export LIBRARY_PATH=%{_libdir}:\${LIBRARY_PATH:+:\${LIBRARY_PATH}}
-export LD_LIBRARY_PATH=%{_libdir}:\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}
+export PATH=%{_bindir}\${PATH:+:\${PATH}}
+export LIBRARY_PATH=%{_libdir}\${LIBRARY_PATH:+:\${LIBRARY_PATH}}
+export LD_LIBRARY_PATH=%{_libdir}\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}
 export MANPATH=%{_mandir}:\${MANPATH}
-export PKG_CONFIG_PATH=%{_libdir}/pkgconfig:\${PKG_CONFIG_PATH:+:\${PKG_CONFIG_PATH}}
-export CPATH=%{_includedir}:\${CPATH:+:\${CPATH}}
+export PKG_CONFIG_PATH=%{_libdir}/pkgconfig\${PKG_CONFIG_PATH:+:\${PKG_CONFIG_PATH}}
+export CPATH=%{_includedir}\${CPATH:+:\${CPATH}}
 # Needed by Java Packages Tools to locate java.conf
 export JAVACONFDIRS="%{_sysconfdir}/java:\${JAVACONFDIRS:-/etc/java}"
 # Required by XMvn to locate its configuration file(s)
@@ -267,6 +267,10 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_root_sysconfdir}/rpm/macros.%{scl_name_base}-scldevel
 
 %changelog
+* Thu Feb 13 2014 Honza Horak <hhorak@redhat.com> - 1.1-2
+- Revert change in the exporting paths
+  Related: #1057491
+
 * Tue Feb 11 2014 Jan Pacner <jpacner@redhat.com> - 1.1-1
 - Resolves: #1061449 (meta pkg should include LICENSE, README and man page - all
   related to meta pkg itself)
