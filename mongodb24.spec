@@ -13,7 +13,7 @@ Summary: Package that installs %scl
 Name: %scl_name
 # should match the RHSCL version
 Version: 1.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0: macros.mongodb24
@@ -23,11 +23,7 @@ Source2: mongodb24-javapackages-requires-wrapper
 Source3: README
 # mongodb license
 Source4: LICENSE
-%if 0%{?rhel} < 7
-Requires: scl-utils >= 20120927-8.el6_5
-%else
 Requires: scl-utils
-%endif
 Requires: %{scl_v8}
 Requires: %{scl_prefix}mongodb-server
 BuildRequires: scl-utils-build, help2man
@@ -43,6 +39,8 @@ Install this package if you want to use MongoDB 2.4 server on your system
 Summary: Package that handles %scl Software Collection.
 Group: Applications/File
 Requires: scl-utils
+# e.g. scl-utils 20120927-8.el6_5
+Requires: /usr/bin/scl_source
 Requires: %{?scl_v8_prefix}runtime
 Requires(post): policycoreutils-python, libselinux-utils
 
@@ -267,6 +265,10 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_root_sysconfdir}/rpm/macros.%{scl_name_base}-scldevel
 
 %changelog
+* Fri Feb 21 2014 Jan Pacner <jpacner@redhat.com> - 1.1-3
+- Related: #1054644 (depend on newer scl-utils; use different approach due to
+  mess in scl-utils versioning)
+
 * Thu Feb 13 2014 Honza Horak <hhorak@redhat.com> - 1.1-2
 - Revert change in the exporting paths
   Related: #1057491
