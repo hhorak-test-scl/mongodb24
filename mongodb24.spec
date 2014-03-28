@@ -5,7 +5,6 @@
 %scl_package %scl
 # needed, because we can't use Requires: %{?scl_v8_%{scl_name_base}}
 %global scl_v8 v8314
-%{?scl:%global scl_v8_prefix %{scl_v8}-}
 # do not produce empty debuginfo package (https://bugzilla.redhat.com/show_bug.cgi?id=1061439#c2)
 %global debug_package %{nil}
 
@@ -13,7 +12,7 @@ Summary: Package that installs %scl
 Name: %scl_name
 # should match the RHSCL version
 Version: 1.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0: macros.mongodb24
@@ -24,7 +23,6 @@ Source3: README
 # mongodb license
 Source4: LICENSE
 Requires: scl-utils
-Requires: %{scl_v8}
 Requires: %{scl_prefix}mongodb-server
 BuildRequires: scl-utils-build, help2man
 
@@ -41,7 +39,6 @@ Group: Applications/File
 Requires: scl-utils
 # e.g. scl-utils 20120927-8.el6_5
 Requires: /usr/bin/scl_source
-Requires: %{?scl_v8_prefix}runtime
 Requires(post): policycoreutils-python, libselinux-utils
 
 %description runtime
@@ -210,10 +207,10 @@ cat >> %{buildroot}%{_scl_scripts}/service-environment << EOF
 $(printf '%%s' '%{scl}' | tr '[:lower:][:space:]' '[:upper:]_')_SCLS_ENABLED='%{scl}'
 EOF
 
-install -d -m 755 %{buildroot}%{_sysconfdir}/java
+install -d -m 755           %{buildroot}%{_sysconfdir}/java
 install -p -m 644 java.conf %{buildroot}%{_sysconfdir}/java/
 
-install -d -m 755 %{buildroot}%{_sysconfdir}/xdg/xmvn
+install -d -m 755                   %{buildroot}%{_sysconfdir}/xdg/xmvn
 install -p -m 644 configuration.xml %{buildroot}%{_sysconfdir}/xdg/xmvn/
 
 # install magic for java mvn provides/requires generators
@@ -222,8 +219,8 @@ install -Dpm0755 %{SOURCE1} %{buildroot}%{_rpmconfigdir}/%{name}-javapackages-pr
 install -Dpm0755 %{SOURCE2} %{buildroot}%{_rpmconfigdir}/%{name}-javapackages-requires-wrapper
 
 # install generated man page
-mkdir -p %{buildroot}%{_mandir}/man7/
-install -m 644 %{scl_name}.7 %{buildroot}%{_mandir}/man7/%{scl_name}.7
+install -d -m 755               %{buildroot}%{_mandir}/man7
+install -p -m 644 %{scl_name}.7 %{buildroot}%{_mandir}/man7/
 
 %scl_install
 
@@ -265,6 +262,10 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_root_sysconfdir}/rpm/macros.%{scl_name_base}-scldevel
 
 %changelog
+* Fri Mar 28 2014 Jan Pacner <jpacner@redhat.com> - 1.1-4
+- Resolves: #1075688 (metapackage shouldnt depend on another metapackage)
+- Resolves: #1075025 (Leftovers files after mongodb packages removal)
+
 * Fri Feb 21 2014 Jan Pacner <jpacner@redhat.com> - 1.1-3
 - Related: #1054644 (depend on newer scl-utils; use different approach due to
   mess in scl-utils versioning)
