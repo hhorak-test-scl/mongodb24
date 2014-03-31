@@ -12,7 +12,7 @@ Summary: Package that installs %scl
 Name: %scl_name
 # should match the RHSCL version
 Version: 1.1
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0: macros.mongodb24
@@ -236,7 +236,8 @@ EOF
 # In case new version needs some additional rules or context definition,
 # it needs to be solved.
 semanage fcontext -a -e /var/log/mongodb /var/log/%{scl_prefix}mongodb >/dev/null 2>&1 || :
-semanage fcontext -a -e /etc/rc.d/init.d/mongod /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
+semanage fcontext -a -e /etc/rc.d/init.d/mongod /etc/rc.d/init.d/%{scl_prefix}mongodb >/dev/null 2>&1 || :
+semanage fcontext -a -e /etc/rc.d/init.d/mongod /etc/rc.d/init.d/%{scl_prefix}mongodb-shard >/dev/null 2>&1 || :
 semanage fcontext -a -e / %{_scl_root} >/dev/null 2>&1 || :
 selinuxenabled && load_policy >/dev/null 2>&1 || :
 restorecon -R %{_scl_root} >/dev/null 2>&1 || :
@@ -262,6 +263,10 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_root_sysconfdir}/rpm/macros.%{scl_name_base}-scldevel
 
 %changelog
+* Mon Mar 31 2014 Honza Horak <hhorak@redhat.com> - 1.1-5
+- Fix path to init scripts
+  Related: #1057097
+
 * Fri Mar 28 2014 Jan Pacner <jpacner@redhat.com> - 1.1-4
 - Resolves: #1075688 (metapackage shouldnt depend on another metapackage)
 - Resolves: #1075025 (Leftovers files after mongodb packages removal)
