@@ -11,8 +11,8 @@
 Summary: Package that installs %scl
 Name: %scl_name
 # should match the RHSCL version
-Version: 1.1
-Release: 5%{?dist}
+Version: 1.2
+Release: 1%{?dist}
 License: GPLv2+
 Group: Applications/File
 Source0: macros.mongodb24
@@ -25,6 +25,8 @@ Source4: LICENSE
 Requires: scl-utils
 Requires: %{scl_prefix}mongodb-server
 BuildRequires: scl-utils-build, help2man
+# For java macro expansion
+BuildRequires: maven30-javapackages-tools
 
 %description
 This is the main package for %scl Software Collection, which installs
@@ -48,6 +50,8 @@ Package shipping essential scripts to work with %scl Software Collection.
 Summary: Package shipping basic build configuration
 # xmvn_config/java_config
 Requires: %{name}-runtime = %{version}
+# maven auto-requires/provides
+Requires: maven30-javapackages-tools
 Requires: scl-utils-build
 Group: Applications/File
 
@@ -58,6 +62,11 @@ Package shipping essential configuration macros to build
 %package scldevel
 Summary: Package shipping development files for %scl.
 Group: Applications/File
+# Allow for users to install this package and be able to
+# rebuild mongodb24 packages.
+Requires: maven30-javapackages-tools
+Requires: maven30-maven-local
+Requires: %{name}-runtime = %{version}-%{release}
 
 %description scldevel
 Development files for %scl (useful e.g. for hierarchical collection
@@ -71,6 +80,13 @@ cat <<EOF >java.conf
 JAVA_LIBDIR=%{_javadir}
 JNI_LIBDIR=%{_jnidir}
 JVM_ROOT=%{_jvmdir}
+EOF
+# javadoc.req See SOURCE2
+cat <<EOF >javadoc.req
+#!/bin/sh
+# always required for javadocs
+# for directory ownership
+echo %{name}-runtime
 EOF
 # XMvn config
 cat <<EOF >configuration.xml
@@ -107,7 +123,7 @@ cat <<EOF >configuration.xml
       <configuration>
         <repositories>
           <repository>%{scl}-resolve</repository>
-          <repository>base-resolve</repository>
+          <repository>maven30-resolve</repository>
         </repositories>
       </configuration>
     </repository>
@@ -213,10 +229,22 @@ install -p -m 644 java.conf %{buildroot}%{_sysconfdir}/java/
 install -d -m 755                   %{buildroot}%{_sysconfdir}/xdg/xmvn
 install -p -m 644 configuration.xml %{buildroot}%{_sysconfdir}/xdg/xmvn/
 
+install -d -m 755                   %{buildroot}/opt/rh/%{name}/root/%{_rpmconfigdir}
+install -p -m 755 javadoc.req       %{buildroot}/opt/rh/%{name}/root/%{_rpmconfigdir}/javadoc.req
+
 # install magic for java mvn provides/requires generators
 install -Dpm0644 %{SOURCE0} %{buildroot}%{_root_sysconfdir}/rpm/macros.%{name}
 install -Dpm0755 %{SOURCE1} %{buildroot}%{_rpmconfigdir}/%{name}-javapackages-provides-wrapper
 install -Dpm0755 %{SOURCE2} %{buildroot}%{_rpmconfigdir}/%{name}-javapackages-requires-wrapper
+
+# Create java/maven directories so that they'll get properly owned.
+# These are listed in the scl_files macro. See also: RHBZ#1057169
+install -d -m 755 %{buildroot}%{_javadir}
+install -d -m 755 %{buildroot}%{_prefix}/lib/java
+install -d -m 755 %{buildroot}%{_javadocdir}
+install -d -m 755 %{buildroot}%{_mavenpomdir}
+install -d -m 755 %{buildroot}%{_datadir}/maven-effective-poms
+install -d -m 755 %{buildroot}%{_mavendepmapfragdir}
 
 # install generated man page
 install -d -m 755               %{buildroot}%{_mandir}/man7
@@ -263,6 +291,17 @@ restorecon /etc/rc.d/init.d/%{scl_prefix}mongod >/dev/null 2>&1 || :
 %{_root_sysconfdir}/rpm/macros.%{scl_name_base}-scldevel
 
 %changelog
+* Wed Jun 18 2014 Severin Gehwolf <sgehwolf@redhat.com> - 1.2-1
+- Fix xmvn config in order to make thermostat1 collection
+  build correctly using maven30.
+- Fix macros not being expanded in java.conf. Added BR
+  maven30-javapackages-tools.
+- Own java/maven directories.
+- Modify maven provides/requires generator so as to use the
+  one coming from the maven30 collection.
+- Statically generate mongodb24-runtime dep for javadoc
+  packages.
+
 * Mon Mar 31 2014 Honza Horak <hhorak@redhat.com> - 1.1-5
 - Fix path to init scripts
   Related: #1057097
